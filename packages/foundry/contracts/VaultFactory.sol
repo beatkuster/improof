@@ -7,6 +7,10 @@ contract VaultFactory {
     //////////////////////
     // State Variables  //
     //////////////////////
+    address private constant CHAINLINK_ROUTER = 0xf9B8fc078197181C841c296C876945aaa425B278;
+    uint64 private constant SUBSCRIPTION_ID = 404;
+    bytes32 private constant DON_ID = 0x66756e2d626173652d7365706f6c69612d310000000000000000000000000000;
+
     Vault[] public s_listOfVaults;
     mapping(address => Vault[]) public s_beneficiaryToVaults;
 
@@ -17,7 +21,7 @@ contract VaultFactory {
         public
         returns (Vault)
     {
-        Vault vault = new Vault(name, beneficiary, stablecoin, targetAmount);
+        Vault vault = new Vault(name, beneficiary, stablecoin, targetAmount, CHAINLINK_ROUTER, SUBSCRIPTION_ID, DON_ID);
         s_listOfVaults.push(vault);
         s_beneficiaryToVaults[beneficiary].push(vault);
         return vault;

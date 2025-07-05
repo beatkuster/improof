@@ -432,7 +432,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1751719791.json",
+      deploymentFile: "run-1751747432.json",
       deploymentScript: "Deploy.s.sol",
     },
     VaultFactory: {
@@ -581,13 +581,13 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1751719791.json",
+      deploymentFile: "run-1751747432.json",
       deploymentScript: "Deploy.s.sol",
     },
   },
   84532: {
     ERC20Mock: {
-      address: "0x8a82b4f801b063a91a9aab109e6e49e0b1e30d2d",
+      address: "0xa3094a732f60c71adde93afbe11d41e6029d64d0",
       abi: [
         {
           type: "constructor",
@@ -1012,11 +1012,11 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1751731640.json",
+      deploymentFile: "run-1751747845.json",
       deploymentScript: "Deploy.s.sol",
     },
     VaultFactory: {
-      address: "0x9a4b9e82768af7c102279e4fe62644ab3dba8420",
+      address: "0x1a36cd437c2f7bec0c2f3bdb76fa21bebef252b0",
       abi: [
         {
           type: "function",
@@ -1161,7 +1161,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1751731640.json",
+      deploymentFile: "run-1751747845.json",
       deploymentScript: "Deploy.s.sol",
     },
   },

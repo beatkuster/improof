@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { NextPage } from "next";
 import { formatUnits, parseUnits } from "viem";
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount, useReadContract, useWriteContract } from "wagmi";
 import { InputBase, IntegerInput, Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { useStablecoins } from "~~/hooks/useStablecoins";
@@ -52,6 +52,27 @@ const VAULT_ABI = [
         outputs: [{ name: "", type: "address", internalType: "address" }],
         stateMutability: "view",
     },
+    {
+        type: "function",
+        name: "checkCondition",
+        inputs: [],
+        outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+        stateMutability: "nonpayable",
+    },
+    {
+        type: "function",
+        name: "getConditionsMet",
+        inputs: [],
+        outputs: [{ name: "", type: "bool", internalType: "bool" }],
+        stateMutability: "view",
+    },
+    {
+        type: "function",
+        name: "getTreesPlanted",
+        inputs: [],
+        outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+        stateMutability: "view",
+    },
 ] as const;
 
 const ERC20_ABI = [
@@ -72,6 +93,8 @@ const ERC20_ABI = [
 ] as const;
 
 const VaultRow = ({ vaultAddress, index }: { vaultAddress: string; index: number }) => {
+    const [isCheckingCondition, setIsCheckingCondition] = useState(false);
+    
     const { data: vaultName } = useReadContract({
         address: vaultAddress as `0x${string}`,
         abi: VAULT_ABI,
@@ -102,6 +125,20 @@ const VaultRow = ({ vaultAddress, index }: { vaultAddress: string; index: number
         functionName: "balanceOf",
         args: [vaultAddress],
     });
+
+    const { data: conditionsMet } = useReadContract({
+        address: vaultAddress as `0x${string}`,
+        abi: VAULT_ABI,
+        functionName: "getConditionsMet",
+    });
+
+    const { data: treesPlanted } = useReadContract({
+        address: vaultAddress as `0x${string}`,
+        abi: VAULT_ABI,
+        functionName: "getTreesPlanted",
+    });
+
+    const { writeContractAsync: checkCondition } = useWriteContract();
 
     // Convert bytes32 name to string
     const nameStr = vaultName ? Buffer.from(vaultName.slice(2), "hex").toString("utf8").replace(/\0/g, "") : "Loading...";
@@ -158,18 +195,48 @@ const VaultRow = ({ vaultAddress, index }: { vaultAddress: string; index: number
                 </div>
             </td>
             <td>
-                <button 
-                    className="btn btn-sm btn-outline btn-primary"
-                    onClick={() => {
-                        // TODO: Implement check payout functionality
-                        console.log("Check Status of vault:", vaultAddress);
-                    }}
-                >
-                    Request Payout
-                </button>
+                <div className="flex flex-col gap-1">
+                    <button
+                        className={`btn btn-sm btn-outline btn-primary ${isCheckingCondition ? "loading" : ""}`}
+                        onClick={handleCheckCondition}
+                        disabled={isCheckingCondition}
+                    >
+                        {isCheckingCondition ? "Checking..." : "Check Conditions"}
+                    </button>
+                    {conditionsMet !== undefined && (
+                        <div className="text-xs">
+                            <div className={`badge ${conditionsMet ? "badge-success" : "badge-warning"}`}>
+                                {conditionsMet ? "✓ Conditions Met" : "⚠ Conditions Not Met"}
+                            </div>
+                            {treesPlanted !== undefined && (
+                                <div className="text-gray-600 mt-1">
+                                    Trees: {treesPlanted.toString()}/200
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
             </td>
         </tr>
     );
+
+    async function handleCheckCondition() {
+        setIsCheckingCondition(true);
+        try {
+            await checkCondition({
+                address: vaultAddress as `0x${string}`,
+                abi: VAULT_ABI,
+                functionName: "checkCondition",
+            });
+            
+            notification.success("Condition check initiated! Please wait for the result.");
+        } catch (error) {
+            console.error("Error checking condition:", error);
+            notification.error("Failed to check condition. Please try again.");
+        } finally {
+            setIsCheckingCondition(false);
+        }
+    }
 };
 
 const Vaults: NextPage = () => {
@@ -225,6 +292,9 @@ const Vaults: NextPage = () => {
                                 </option>
                                 <option value="0x293159D545b9158DdaDAc4dA9F6507d47576416E">
                                     0x2931...416E
+                                </option>
+                                <option value="0xf4B59F11AAdbE374F32A6F9359D0C2D248B47029">
+                                    0xf4B5...7029
                                 </option>
                             </select>
 
