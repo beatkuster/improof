@@ -432,75 +432,85 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1751702663.json",
+      deploymentFile: "run-1751706370.json",
       deploymentScript: "Deploy.s.sol",
     },
-    Vault: {
-      address: "0xb19b36b1456e65e3a6d514d3f715f204bd59f431",
+    VaultFactory: {
+      address: "0xa15bb66138824a1c7167f5e85b957d04dd34e468",
       abi: [
         {
-          type: "constructor",
+          type: "function",
+          name: "createVault",
           inputs: [
             {
-              name: "_name",
+              name: "name",
               type: "bytes32",
               internalType: "bytes32",
             },
             {
-              name: "_beneficiary",
+              name: "beneficiary",
               type: "address",
               internalType: "address",
             },
             {
-              name: "_stablecoin",
+              name: "stablecoin",
               type: "address",
               internalType: "address",
             },
             {
-              name: "_targetAmount",
+              name: "targetAmount",
               type: "uint256",
               internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "contract Vault",
             },
           ],
           stateMutability: "nonpayable",
         },
         {
           type: "function",
-          name: "deposit",
+          name: "getAllVaults",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address[]",
+              internalType: "contract Vault[]",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getVaultAddressByIndex",
           inputs: [
             {
-              name: "depositor",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "token",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "amount",
+              name: "index",
               type: "uint256",
               internalType: "uint256",
             },
           ],
-          outputs: [],
-          stateMutability: "nonpayable",
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
         },
         {
           type: "function",
-          name: "distribute",
-          inputs: [],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "getBalanceOfVault",
+          name: "getVaultCount",
           inputs: [],
           outputs: [
             {
-              name: "totalBalance",
+              name: "",
               type: "uint256",
               internalType: "uint256",
             },
@@ -509,46 +519,69 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "getBeneficiary",
-          inputs: [],
+          name: "getVaultsByBeneficiary",
+          inputs: [
+            {
+              name: "beneficiary",
+              type: "address",
+              internalType: "address",
+            },
+          ],
           outputs: [
             {
               name: "",
-              type: "address",
-              internalType: "address",
+              type: "address[]",
+              internalType: "contract Vault[]",
             },
           ],
           stateMutability: "view",
         },
         {
           type: "function",
-          name: "getName",
-          inputs: [],
+          name: "s_beneficiaryToVaults",
+          inputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
           outputs: [
             {
               name: "",
-              type: "bytes32",
-              internalType: "bytes32",
+              type: "address",
+              internalType: "contract Vault",
             },
           ],
           stateMutability: "view",
         },
         {
           type: "function",
-          name: "getOwner",
-          inputs: [],
+          name: "s_listOfVaults",
+          inputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
           outputs: [
             {
               name: "",
               type: "address",
-              internalType: "address",
+              internalType: "contract Vault",
             },
           ],
           stateMutability: "view",
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1751702663.json",
+      deploymentFile: "run-1751706370.json",
       deploymentScript: "Deploy.s.sol",
     },
   },
