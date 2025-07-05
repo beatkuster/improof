@@ -60,6 +60,14 @@ contract Vault {
         return i_beneficiary;
     }
 
+    function getStablecoin() public view returns (address) {
+        return i_stablecoin;
+    }
+
+    function getTargetAmount() public view returns (uint256) {
+        return i_targetAmount;
+    }
+
     function getBalanceOfVault() public view returns (uint256 totalBalance) {
         return s_vaultBalance;
     }
