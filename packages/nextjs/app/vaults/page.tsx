@@ -157,6 +157,17 @@ const VaultRow = ({ vaultAddress, index }: { vaultAddress: string; index: number
                     <span className="text-sm">{progressPercentage}%</span>
                 </div>
             </td>
+            <td>
+                <button 
+                    className="btn btn-sm btn-outline btn-primary"
+                    onClick={() => {
+                        // TODO: Implement check payout functionality
+                        console.log("Check Status of vault:", vaultAddress);
+                    }}
+                >
+                    Request Payout
+                </button>
+            </td>
         </tr>
     );
 };
@@ -190,7 +201,7 @@ const Vaults: NextPage = () => {
                 {/* Create Improof Vault*/}
                 {
                     <div className="flex flex-col items-center space-y-4 bg-base-100 shadow-lg shadow-secondary border-8 border-secondary rounded-xl p-6 mt-8 w-full max-w-lg">
-                        <div className="text-xl">Create a Vault</div>
+                        <div className="text-xl">Create a Donation Vault</div>
 
                         <div className="w-full flex flex-col space-y-2">
                             <InputBase placeholder="Name of your Vault" value={vaultName} onChange={value => setVaultName(value)} />
@@ -274,7 +285,7 @@ const Vaults: NextPage = () => {
 
                 {/* Vault Table */}
                 {connectedAddress && (
-                    <div className="w-full max-w-4xl mt-8">
+                    <div className="w-full max-w-7xl mt-8">
                         <h2 className="text-2xl font-bold mb-4">Your Vaults</h2>
                         <div className="overflow-x-auto">
                             <table className="table table-zebra w-full">
@@ -286,6 +297,7 @@ const Vaults: NextPage = () => {
                                         <th>Current Balance</th>
                                         <th>Target Amount</th>
                                         <th>Progress</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -295,7 +307,7 @@ const Vaults: NextPage = () => {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={6} className="text-center text-gray-500">
+                                            <td colSpan={8} className="text-center text-gray-500">
                                                 {connectedAddress ? "No vaults found for this address" : "Please connect your wallet"}
                                             </td>
                                         </tr>
