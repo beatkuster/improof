@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import type { NextPage } from "next";
 import { parseUnits, formatUnits } from "viem";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
-import { IntegerInput } from "~~/components/scaffold-eth";
+import { IntegerInput, Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 import { notification } from "~~/utils/scaffold-eth";
 
@@ -14,6 +14,13 @@ const VAULT_ABI = [
     name: "getName",
     inputs: [],
     outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getBeneficiary",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
   {
@@ -80,6 +87,39 @@ const VaultOption = ({ vaultAddress }: { vaultAddress: string }) => {
     <option value={vaultAddress}>
       {nameStr} ({shortAddress})
     </option>
+  );
+};
+
+const VaultDetails = ({ vaultAddress }: { vaultAddress: string }) => {
+  const { data: vaultName } = useReadContract({
+    address: vaultAddress as `0x${string}`,
+    abi: VAULT_ABI,
+    functionName: "getName",
+  });
+
+  const { data: beneficiary } = useReadContract({
+    address: vaultAddress as `0x${string}`,
+    abi: VAULT_ABI,
+    functionName: "getBeneficiary",
+  });
+
+  const nameStr = vaultName ? Buffer.from(vaultName.slice(2), "hex").toString("utf8").replace(/\0/g, "") : "Loading...";
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between">
+        <span className="text-sm font-medium">Name:</span>
+        <span className="text-sm">{nameStr}</span>
+      </div>
+      <div className="flex justify-between items-center">
+        <span className="text-sm font-medium">Beneficiary:</span>
+        {beneficiary ? (
+          <Address address={beneficiary} size="xs" format="short" />
+        ) : (
+          <span className="text-sm text-gray-500">Loading...</span>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -268,6 +308,14 @@ const Donate: NextPage = () => {
                   <option disabled>No vaults available</option>
                 )}
               </select>
+
+              {/* Display selected vault details with ENS resolution */}
+              {selectedVault && (
+                <div className="mt-2 p-3 bg-base-200 rounded-lg">
+                  <div className="text-sm text-gray-600 mb-1">Selected Vault Details:</div>
+                  <VaultDetails vaultAddress={selectedVault} />
+                </div>
+              )}
 
               <IntegerInput
                 placeholder="Donation Amount (in USDC)"

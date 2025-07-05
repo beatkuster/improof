@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { NextPage } from "next";
 import { formatUnits, parseUnits } from "viem";
 import { useAccount, useReadContract } from "wagmi";
-import { AddressInput, InputBase, IntegerInput } from "~~/components/scaffold-eth";
+import { InputBase, IntegerInput, Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { useStablecoins } from "~~/hooks/useStablecoins";
 import { notification } from "~~/utils/scaffold-eth";
@@ -135,17 +135,17 @@ const VaultRow = ({ vaultAddress, index }: { vaultAddress: string; index: number
             </td>
             <td>{nameStr}</td>
             <td>
-                <div className="font-mono text-sm">
-                    {beneficiary ? `${beneficiary.slice(0, 6)}...${beneficiary.slice(-4)}` : "Loading..."}
-                </div>
+                {beneficiary ? (
+                    <Address address={beneficiary} size="sm" format="short" />
+                ) : (
+                    <span className="text-gray-500">Loading...</span>
+                )}
             </td>
             <td>
                 {parseFloat(balanceFormatted).toFixed(2)} USDC
-                {balance && <div className="text-xs text-gray-500">Raw: {balance.toString()}</div>}
             </td>
             <td>
                 {parseFloat(targetAmountFormatted).toFixed(2)} USDC
-                {targetAmount && <div className="text-xs text-gray-500">Raw: {targetAmount.toString()}</div>}
             </td>
             <td>
                 <div className="flex items-center gap-2">
@@ -155,9 +155,6 @@ const VaultRow = ({ vaultAddress, index }: { vaultAddress: string; index: number
                         max={targetNum || 1}
                     />
                     <span className="text-sm">{progressPercentage}%</span>
-                    <div className="text-xs text-gray-500">
-                        {balanceNum.toFixed(2)} / {targetNum.toFixed(2)} = {progressPercentage}%
-                    </div>
                 </div>
             </td>
         </tr>
@@ -185,13 +182,15 @@ const Vaults: NextPage = () => {
         args: [connectedAddress],
     });
 
+
+
     return (
         <>
             <div className="flex items-center flex-col flex-grow pt-10 px-4">
                 {/* Create Improof Vault*/}
                 {
                     <div className="flex flex-col items-center space-y-4 bg-base-100 shadow-lg shadow-secondary border-8 border-secondary rounded-xl p-6 mt-8 w-full max-w-lg">
-                        <div className="text-xl">Create your ImProof Vault</div>
+                        <div className="text-xl">Create a Vault</div>
 
                         <div className="w-full flex flex-col space-y-2">
                             <InputBase placeholder="Name of your Vault" value={vaultName} onChange={value => setVaultName(value)} />
@@ -202,11 +201,29 @@ const Vaults: NextPage = () => {
                                 onChange={value => setVaultDescription(value)}
                             />
 
-                            <AddressInput
-                                placeholder="Beneficiary Address"
+                            <select
+                                className="select select-bordered"
                                 value={beneficiaryAddress}
-                                onChange={setBeneficiaryAddress}
-                            />
+                                onChange={e => setBeneficiaryAddress(e.target.value)}
+                            >
+                                <option value="" disabled>
+                                    Select Beneficiary Address
+                                </option>
+                                <option value="0xa53A13A80D72A855481DE5211E7654fAbDFE3526">
+                                    0xa53A...3526
+                                </option>
+                                <option value="0x293159D545b9158DdaDAc4dA9F6507d47576416E">
+                                    0x2931...416E
+                                </option>
+                            </select>
+
+                            {/* Show ENS-resolved address details when selected */}
+                            {beneficiaryAddress && beneficiaryAddress !== "" && (
+                                <div className="mt-2 p-3 bg-base-200 rounded-lg">
+                                    <div className="text-sm text-gray-600 mb-1">Selected Beneficiary:</div>
+                                    <Address address={beneficiaryAddress} size="sm" format="short" />
+                                </div>
+                            )}
 
                             <IntegerInput
                                 placeholder="Target Amount (in USD)"
