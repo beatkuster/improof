@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import type { NextPage } from "next";
-import { parseUnits, formatUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 import { AddressInput, InputBase, IntegerInput } from "~~/components/scaffold-eth";
-import { useScaffoldWriteContract, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useStablecoins } from "~~/hooks/useStablecoins";
 import { notification } from "~~/utils/scaffold-eth";
 
 const VAULT_ABI = [
@@ -74,49 +75,47 @@ const VaultRow = ({ vaultAddress, index }: { vaultAddress: string; index: number
   const { data: vaultName } = useReadContract({
     address: vaultAddress as `0x${string}`,
     abi: VAULT_ABI,
-    functionName: 'getName',
+    functionName: "getName",
   });
 
   const { data: beneficiary } = useReadContract({
     address: vaultAddress as `0x${string}`,
     abi: VAULT_ABI,
-    functionName: 'getBeneficiary',
+    functionName: "getBeneficiary",
   });
 
   const { data: targetAmount } = useReadContract({
     address: vaultAddress as `0x${string}`,
     abi: VAULT_ABI,
-    functionName: 'getTargetAmount',
+    functionName: "getTargetAmount",
   });
 
   const { data: stablecoinAddress } = useReadContract({
     address: vaultAddress as `0x${string}`,
     abi: VAULT_ABI,
-    functionName: 'getStablecoin',
+    functionName: "getStablecoin",
   });
 
   const { data: balance } = useReadContract({
     address: stablecoinAddress as `0x${string}`,
     abi: ERC20_ABI,
-    functionName: 'balanceOf',
+    functionName: "balanceOf",
     args: [vaultAddress],
   });
 
   // Convert bytes32 name to string
-  const nameStr = vaultName ? 
-    Buffer.from(vaultName.slice(2), 'hex').toString('utf8').replace(/\0/g, '') : 
-    'Loading...';
+  const nameStr = vaultName ? Buffer.from(vaultName.slice(2), "hex").toString("utf8").replace(/\0/g, "") : "Loading...";
 
-  const balanceFormatted = balance ? formatUnits(balance, 6) : '0';
-  const targetAmountFormatted = targetAmount ? formatUnits(targetAmount, 6) : '0';
-  
+  const balanceFormatted = balance ? formatUnits(balance, 6) : "0";
+  const targetAmountFormatted = targetAmount ? formatUnits(targetAmount, 6) : "0";
+
   // Calculate progress percentage
   const balanceNum = parseFloat(balanceFormatted);
   const targetNum = parseFloat(targetAmountFormatted);
   const progressPercentage = targetNum > 0 ? Math.round((balanceNum / targetNum) * 100) : 0;
-  
+
   // Debug logging
-  console.log('Progress calculation:', {
+  console.log("Progress calculation:", {
     vaultAddress,
     balance: balance?.toString(),
     targetAmount: targetAmount?.toString(),
@@ -124,7 +123,7 @@ const VaultRow = ({ vaultAddress, index }: { vaultAddress: string; index: number
     targetAmountFormatted,
     balanceNum,
     targetNum,
-    progressPercentage
+    progressPercentage,
   });
 
   return (
@@ -137,35 +136,25 @@ const VaultRow = ({ vaultAddress, index }: { vaultAddress: string; index: number
       <td>{nameStr}</td>
       <td>
         <div className="font-mono text-sm">
-          {beneficiary ? `${beneficiary.slice(0, 6)}...${beneficiary.slice(-4)}` : 'Loading...'}
+          {beneficiary ? `${beneficiary.slice(0, 6)}...${beneficiary.slice(-4)}` : "Loading..."}
         </div>
       </td>
       <td>
         {parseFloat(balanceFormatted).toFixed(2)} USDC
-        {balance && (
-          <div className="text-xs text-gray-500">
-            Raw: {balance.toString()}
-          </div>
-        )}
+        {balance && <div className="text-xs text-gray-500">Raw: {balance.toString()}</div>}
       </td>
       <td>
         {parseFloat(targetAmountFormatted).toFixed(2)} USDC
-        {targetAmount && (
-          <div className="text-xs text-gray-500">
-            Raw: {targetAmount.toString()}
-          </div>
-        )}
+        {targetAmount && <div className="text-xs text-gray-500">Raw: {targetAmount.toString()}</div>}
       </td>
       <td>
         <div className="flex items-center gap-2">
-          <progress 
-            className="progress progress-primary w-20" 
-            value={Math.min(balanceNum, targetNum)} 
+          <progress
+            className="progress progress-primary w-20"
+            value={Math.min(balanceNum, targetNum)}
             max={targetNum || 1}
           />
-          <span className="text-sm">
-            {progressPercentage}%
-          </span>
+          <span className="text-sm">{progressPercentage}%</span>
           <div className="text-xs text-gray-500">
             {balanceNum.toFixed(2)} / {targetNum.toFixed(2)} = {progressPercentage}%
           </div>
@@ -177,12 +166,14 @@ const VaultRow = ({ vaultAddress, index }: { vaultAddress: string; index: number
 
 const Donate: NextPage = () => {
   const { address: connectedAddress } = useAccount();
+  const { stablecoins, isNetworkSupported, currentNetworkName } = useStablecoins();
 
   const [vaultName, setVaultName] = useState("");
   const [vaultDescription, setVaultDescription] = useState("");
   const [beneficiaryAddress, setBeneficiaryAddress] = useState("");
   const [addressOfStablecoinCreate, setAddressOfStablecoinCreate] = useState("");
   const [targetAmount, setTargetAmount] = useState("");
+  const [selectedStablecoin, setSelectedStablecoin] = useState<{ decimals: number; symbol: string } | null>(null);
 
   const { writeContractAsync: createVault, isMining } = useScaffoldWriteContract({
     contractName: "VaultFactory",
@@ -227,13 +218,31 @@ const Donate: NextPage = () => {
               <select
                 className="select select-bordered"
                 value={addressOfStablecoinCreate}
-                onChange={e => setAddressOfStablecoinCreate(e.target.value)}
+                onChange={e => {
+                  const selectedAddress = e.target.value;
+                  setAddressOfStablecoinCreate(selectedAddress);
+                  // Find the selected stablecoin info for decimal handling
+                  const selectedCoin = stablecoins.find(coin => coin.address === selectedAddress);
+                  setSelectedStablecoin(
+                    selectedCoin ? { decimals: selectedCoin.decimals, symbol: selectedCoin.symbol } : null,
+                  );
+                }}
               >
                 <option value="" disabled>
-                  Select Vault Currency
+                  {isNetworkSupported ? "Select Vault Currency" : `No stablecoins available on ${currentNetworkName}`}
                 </option>
-                <option value="0xb19b36b1456e65e3a6d514d3f715f204bd59f431">USDC Mock (Local)</option>
+                {stablecoins.map(stablecoin => (
+                  <option key={stablecoin.address} value={stablecoin.address}>
+                    {stablecoin.name} ({stablecoin.symbol})
+                  </option>
+                ))}
               </select>
+
+              {!isNetworkSupported && (
+                <div className="text-sm text-warning bg-warning/10 p-2 rounded">
+                  ⚠️ No stablecoins configured for {currentNetworkName}. Please switch to a supported network.
+                </div>
+              )}
             </div>
 
             <button
@@ -304,6 +313,11 @@ const Donate: NextPage = () => {
       return;
     }
 
+    if (!isNetworkSupported) {
+      notification.error(`No stablecoins available on ${currentNetworkName}. Please switch networks.`);
+      return;
+    }
+
     if (!targetAmount || parseFloat(targetAmount) <= 0) {
       notification.error("Please enter a valid target amount");
       return;
@@ -314,8 +328,9 @@ const Donate: NextPage = () => {
       const nameBytes32 =
         `0x${Buffer.from(vaultName.slice(0, 32), "utf8").toString("hex").padEnd(64, "0")}` as `0x${string}`;
 
-      // Convert target amount to USDC units (6 decimals for USDC)
-      const targetAmountWei = parseUnits(targetAmount, 6);
+      // Convert target amount using the correct decimals for the selected stablecoin
+      const decimals = selectedStablecoin?.decimals || 6; // Default to 6 if not found
+      const targetAmountWei = parseUnits(targetAmount, decimals);
 
       await createVault({
         functionName: "createVault",
@@ -333,6 +348,7 @@ const Donate: NextPage = () => {
       setBeneficiaryAddress("");
       setAddressOfStablecoinCreate("");
       setTargetAmount("");
+      setSelectedStablecoin(null);
     } catch (error) {
       console.error("Error creating vault:", error);
       notification.error("Failed to create vault. Please try again.");
