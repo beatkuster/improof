@@ -2,11 +2,178 @@
 
 import { useState } from "react";
 import type { NextPage } from "next";
-import { parseEther } from "viem";
-import { useAccount } from "wagmi";
+import { parseUnits, formatUnits } from "viem";
+import { useAccount, useReadContract } from "wagmi";
 import { AddressInput, InputBase, IntegerInput } from "~~/components/scaffold-eth";
-import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useScaffoldWriteContract, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 import { notification } from "~~/utils/scaffold-eth";
+
+const VAULT_ABI = [
+  {
+    type: "function",
+    name: "getName",
+    inputs: [],
+    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getBeneficiary",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getTargetAmount",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getBalanceOfVault",
+    inputs: [],
+    outputs: [{ name: "totalBalance", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getStablecoin",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getOwner",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+] as const;
+
+const ERC20_ABI = [
+  {
+    type: "function",
+    name: "balanceOf",
+    inputs: [{ name: "account", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "decimals",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
+    stateMutability: "view",
+  },
+] as const;
+
+const VaultRow = ({ vaultAddress, index }: { vaultAddress: string; index: number }) => {
+  const { data: vaultName } = useReadContract({
+    address: vaultAddress as `0x${string}`,
+    abi: VAULT_ABI,
+    functionName: 'getName',
+  });
+
+  const { data: beneficiary } = useReadContract({
+    address: vaultAddress as `0x${string}`,
+    abi: VAULT_ABI,
+    functionName: 'getBeneficiary',
+  });
+
+  const { data: targetAmount } = useReadContract({
+    address: vaultAddress as `0x${string}`,
+    abi: VAULT_ABI,
+    functionName: 'getTargetAmount',
+  });
+
+  const { data: stablecoinAddress } = useReadContract({
+    address: vaultAddress as `0x${string}`,
+    abi: VAULT_ABI,
+    functionName: 'getStablecoin',
+  });
+
+  const { data: balance } = useReadContract({
+    address: stablecoinAddress as `0x${string}`,
+    abi: ERC20_ABI,
+    functionName: 'balanceOf',
+    args: [vaultAddress],
+  });
+
+  // Convert bytes32 name to string
+  const nameStr = vaultName ? 
+    Buffer.from(vaultName.slice(2), 'hex').toString('utf8').replace(/\0/g, '') : 
+    'Loading...';
+
+  const balanceFormatted = balance ? formatUnits(balance, 6) : '0';
+  const targetAmountFormatted = targetAmount ? formatUnits(targetAmount, 6) : '0';
+  
+  // Calculate progress percentage
+  const balanceNum = parseFloat(balanceFormatted);
+  const targetNum = parseFloat(targetAmountFormatted);
+  const progressPercentage = targetNum > 0 ? Math.round((balanceNum / targetNum) * 100) : 0;
+  
+  // Debug logging
+  console.log('Progress calculation:', {
+    vaultAddress,
+    balance: balance?.toString(),
+    targetAmount: targetAmount?.toString(),
+    balanceFormatted,
+    targetAmountFormatted,
+    balanceNum,
+    targetNum,
+    progressPercentage
+  });
+
+  return (
+    <tr key={index}>
+      <td>
+        <div className="font-mono text-sm">
+          {vaultAddress.slice(0, 6)}...{vaultAddress.slice(-4)}
+        </div>
+      </td>
+      <td>{nameStr}</td>
+      <td>
+        <div className="font-mono text-sm">
+          {beneficiary ? `${beneficiary.slice(0, 6)}...${beneficiary.slice(-4)}` : 'Loading...'}
+        </div>
+      </td>
+      <td>
+        {parseFloat(balanceFormatted).toFixed(2)} USDC
+        {balance && (
+          <div className="text-xs text-gray-500">
+            Raw: {balance.toString()}
+          </div>
+        )}
+      </td>
+      <td>
+        {parseFloat(targetAmountFormatted).toFixed(2)} USDC
+        {targetAmount && (
+          <div className="text-xs text-gray-500">
+            Raw: {targetAmount.toString()}
+          </div>
+        )}
+      </td>
+      <td>
+        <div className="flex items-center gap-2">
+          <progress 
+            className="progress progress-primary w-20" 
+            value={Math.min(balanceNum, targetNum)} 
+            max={targetNum || 1}
+          />
+          <span className="text-sm">
+            {progressPercentage}%
+          </span>
+          <div className="text-xs text-gray-500">
+            {balanceNum.toFixed(2)} / {targetNum.toFixed(2)} = {progressPercentage}%
+          </div>
+        </div>
+      </td>
+    </tr>
+  );
+};
 
 const Donate: NextPage = () => {
   const { address: connectedAddress } = useAccount();
@@ -19,6 +186,12 @@ const Donate: NextPage = () => {
 
   const { writeContractAsync: createVault, isMining } = useScaffoldWriteContract({
     contractName: "VaultFactory",
+  });
+
+  const { data: userVaults, refetch: refetchVaults } = useScaffoldReadContract({
+    contractName: "VaultFactory",
+    functionName: "getVaultsByBeneficiary",
+    args: [connectedAddress],
   });
 
   return (
@@ -59,7 +232,7 @@ const Donate: NextPage = () => {
                 <option value="" disabled>
                   Select Vault Currency
                 </option>
-                <option value="0x700b6A60ce7EaaEA56F065753d8dcB9653dbAD35">USDC Mock (Local)</option>
+                <option value="0xb19b36b1456e65e3a6d514d3f715f204bd59f431">USDC Mock (Local)</option>
               </select>
             </div>
 
@@ -68,10 +241,44 @@ const Donate: NextPage = () => {
               onClick={handleCreateVault}
               disabled={isMining || !connectedAddress}
             >
-              {isMining ? "Creating Vault..." : "Create Vault!"}
+              {isMining ? "Creating Vault..." : "Create Vault"}
             </button>
           </div>
         }
+
+        {/* Vault Table */}
+        {connectedAddress && (
+          <div className="w-full max-w-4xl mt-8">
+            <h2 className="text-2xl font-bold mb-4">Your Vaults</h2>
+            <div className="overflow-x-auto">
+              <table className="table table-zebra w-full">
+                <thead>
+                  <tr>
+                    <th>Vault Address</th>
+                    <th>Name</th>
+                    <th>Beneficiary</th>
+                    <th>Current Balance</th>
+                    <th>Target Amount</th>
+                    <th>Progress</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {userVaults && userVaults.length > 0 ? (
+                    userVaults.map((vaultAddress: string, index: number) => (
+                      <VaultRow key={vaultAddress} vaultAddress={vaultAddress} index={index} />
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="text-center text-gray-500">
+                        {connectedAddress ? "No vaults found for this address" : "Please connect your wallet"}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
@@ -107,8 +314,8 @@ const Donate: NextPage = () => {
       const nameBytes32 =
         `0x${Buffer.from(vaultName.slice(0, 32), "utf8").toString("hex").padEnd(64, "0")}` as `0x${string}`;
 
-      // Convert target amount to wei (assuming 6 decimals for USDC)
-      const targetAmountWei = parseEther(targetAmount);
+      // Convert target amount to USDC units (6 decimals for USDC)
+      const targetAmountWei = parseUnits(targetAmount, 6);
 
       await createVault({
         functionName: "createVault",
@@ -116,6 +323,9 @@ const Donate: NextPage = () => {
       });
 
       notification.success("Vault created successfully!");
+
+      // Refresh vault list
+      refetchVaults();
 
       // Reset form
       setVaultName("");
