@@ -29,11 +29,15 @@ contract Vault is FunctionsClient {
     bytes private s_lastError;
     bool private s_conditionsMet;
 
-    string private constant IPFS_SOURCE =
-        "const ipfsUrl = `https://bafybeigsmfbypkc2qw4goq2wvgk526ay4jryedtv7h6obtjmurwxxqvxea.ipfs.dweb.link?filename=GlobalForestWatchAPI_Response.json`;"
-        "const response = await Functions.makeHttpRequest({" "  url: ipfsUrl," "  method: 'GET'" "});"
-        "if (response.error) {" "  throw new Error(`IPFS fetch failed: ${response.error}`);" "}"
-        "const data = response.data;" "return Functions.encodeUint256(parseInt(data.treesPlanted) || 0);";
+    string private constant IPFS_SOURCE = 
+        "const ipfsUrl = `https://api.jsonbin.io/v3/qs/686a05e08561e97a50324c5e`;"
+        "const response = await Functions.makeHttpRequest({url: ipfsUrl, method: 'GET'});"
+        "if (response.error) {"
+        "  throw new Error(`IPFS fetch failed: ${response.error}`);"
+        "}"
+        "const data = response.data;"
+        "const treesPlanted = data.record ? data.record.treesPlanted : data.treesPlanted;"
+        "return Functions.encodeUint256(parseInt(treesPlanted) || 0);";
 
     //////////////////////
     // Functions        //

@@ -1,5 +1,14 @@
 {
-    "projectName": "Brasil-Reforestation",
-    "status": "active",
-    "treesPlanted": "340"
+    "id": "686a05e08561e97a50324c5e",
+    "record": {
+        "projectName": "Brasil-Reforestation",
+        "status": "active",
+        "treesPlanted": "340"
+    },
+    "metadata": {
+        "name": "GlobalForestWatchAPI_Response.json",
+        "readCountRemaining": 98,
+        "timeToExpire": 86378,
+        "createdAt": "2025-07-06T05:13:04.443Z"
+    }
 }
