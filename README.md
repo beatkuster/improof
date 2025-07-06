@@ -1,80 +1,206 @@
-# 🏗 Scaffold-ETH 2
+# 🌱 ImProof – Impact, but with proof
 
 <h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
-  <a href="https://scaffoldeth.io">Website</a>
+  <a href="#getting-started">Getting Started</a> |
+  <a href="#architecture">Architecture</a> |
+  <a href="#features">Features</a>
 </h4>
 
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
+## 📖 Project Story
 
-⚙️ Built using NextJS, RainbowKit, Foundry, Wagmi, Viem, and Typescript.
+ImProof enables people to save small amounts of money daily - not just to accumulate savings but to create real, verifiable impact. Unlike traditional donations, funds are only released when predefined, objective conditions are met. This ensures that donations trigger actual change and reach their intended impact.
 
-- ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
-- 🪝 **[Custom hooks](https://docs.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
-- 🧱 [**Components**](https://docs.scaffoldeth.io/components/): Collection of common web3 components to quickly build your frontend.
-- 🔥 **Burner Wallet & Local Faucet**: Quickly test your application with a burner wallet and local faucet.
-- 🔐 **Integration with Wallet Providers**: Connect to different wallet providers and interact with the Ethereum network.
+ImProof enables micro-donations that are only released when verifiable impact is proven through independent, publicly available data sources. We combine smart contracts, Chainlink oracles, and ENS identities to create transparent and accountable charitable giving.
 
-![Debug Contracts tab](https://github.com/scaffold-eth/scaffold-eth-2/assets/55535804/b237af0c-5027-4849-a5c1-2e31495cccb1)
+To drive meaningful change, we rely on independent, publicly available data sources that confirm whether a project meets its goals, which then triggers the release of funds. Crucially, these data sources are not controlled by the donation recipients, guaranteeing transparency and trust.
 
-## Requirements
+## 🏗 Built on Scaffold-ETH 2
 
-Before you begin, you need to install the following tools:
+This project is built using the Scaffold-ETH 2 framework - an open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain.
 
-- [Node (>= v20.18.3)](https://nodejs.org/en/download/)
-- Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
+⚙️ **Tech Stack**: NextJS, RainbowKit, Foundry, Wagmi, Viem, TypeScript, Chainlink Functions, and TailwindCSS.
+
+## 🌟 Key Features
+
+- **🔒 Conditional Fund Release**: Donations are held in smart contracts and only released when objective conditions are verified
+- **🌐 Chainlink Oracle Integration**: Uses Chainlink Functions to fetch real-world data from independent sources
+- **📊 Transparent Tracking**: Real-time progress monitoring with verifiable metrics
+- **💰 Stablecoin Support**: Built-in support for USDC and other stablecoins
+- **🏭 Vault Factory Pattern**: Scalable architecture for creating multiple donation vaults
+- **👥 ENS Integration**: Human-readable addresses for beneficiaries
+- **📈 Progress Visualization**: Interactive dashboards showing donation progress and impact metrics
+
+## 🎯 How It Works
+
+1. **Create a Vault**: Set up a donation vault with a target amount and verifiable conditions
+2. **Collect Donations**: Users contribute stablecoins to the vault over time
+3. **Monitor Progress**: Track both funding progress and real-world impact metrics
+4. **Verify Conditions**: Chainlink Functions fetch data from independent sources (e.g., forest monitoring APIs)
+5. **Automatic Distribution**: Funds are automatically released when both funding targets and impact conditions are met
+
+## 🏛 Architecture
+
+### Smart Contracts
+
+- **Vault.sol**: Individual donation vaults with Chainlink Functions integration
+  - Manages deposits in specified stablecoins
+  - Implements condition checking via external data sources
+  - Handles automatic fund distribution when conditions are met
+  
+- **VaultFactory.sol**: Factory pattern for creating and managing vaults
+  - Creates new Vault instances
+  - Maintains registry of all vaults
+  - Maps beneficiaries to their vaults
+
+### Frontend
+
+- **Next.js App Router**: Modern React application with TypeScript
+- **Wagmi + Viem**: Ethereum wallet connection and contract interactions
+- **DaisyUI**: Beautiful, accessible UI components
+- **Real-time Updates**: Live vault status and condition monitoring
+
+### Oracle Integration
+
+- **Chainlink Functions**: Serverless compute for fetching external data
+- **IPFS Data Sources**: Decentralized storage for condition verification
+- **Custom JavaScript**: Flexible data processing and validation logic
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- [Node.js (>= v20.18.3)](https://nodejs.org/en/download/)
+- [Yarn](https://classic.yarnpkg.com/en/docs/install/)
 - [Git](https://git-scm.com/downloads)
 
-## Quickstart
+### Installation
 
-To get started with Scaffold-ETH 2, follow the steps below:
-
-1. Install dependencies if it was skipped in CLI:
-
+1. **Clone the repository**:
+```bash
+git clone <repository-url>
+cd improof
 ```
-cd my-dapp-example
+
+2. **Install dependencies**:
+```bash
 yarn install
 ```
 
-2. Run a local network in the first terminal:
-
-```
+3. **Start local blockchain**:
+```bash
 yarn chain
 ```
 
-This command starts a local Ethereum network using Foundry. The network runs on your local machine and can be used for testing and development. You can customize the network configuration in `packages/foundry/foundry.toml`.
-
-3. On a second terminal, deploy the test contract:
-
-```
+4. **Deploy contracts**:
+```bash
 yarn deploy
 ```
 
-This command deploys a test smart contract to the local network. The contract is located in `packages/foundry/contracts` and can be modified to suit your needs. The `yarn deploy` command uses the deploy script located in `packages/foundry/script` to deploy the contract to the network. You can also customize the deploy script.
-
-4. On a third terminal, start your NextJS app:
-
-```
+5. **Start the frontend**:
+```bash
 yarn start
 ```
 
-Visit your app on: `http://localhost:3000`. You can interact with your smart contract using the `Debug Contracts` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
+Visit `http://localhost:3000` to interact with the application.
 
-Run smart contract test with `yarn foundry:test`
+## 🧪 Development Commands
 
-- Edit your smart contracts in `packages/foundry/contracts`
-- Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
-- Edit your deployment scripts in `packages/foundry/script`
+### Smart Contract Development
+```bash
+# Compile contracts
+yarn compile
 
+# Run tests
+yarn foundry:test
 
-## Documentation
+# Format contracts
+yarn foundry:format
 
-Visit our [docs](https://docs.scaffoldeth.io) to learn how to start building with Scaffold-ETH 2.
+# Lint contracts
+yarn foundry:lint
+```
 
-To know more about its features, check out our [website](https://scaffoldeth.io).
+### Frontend Development
+```bash
+# Type checking
+yarn next:check-types
 
-## Contributing to Scaffold-ETH 2
+# Format code
+yarn next:format
 
-We welcome contributions to Scaffold-ETH 2!
+# Lint code
+yarn next:lint
 
-Please see [CONTRIBUTING.MD](https://github.com/scaffold-eth/scaffold-eth-2/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-ETH 2.
+# Build for production
+yarn next:build
+```
+
+### Full Stack
+```bash
+# Format all code
+yarn format
+
+# Lint all code
+yarn lint
+
+# Run all tests
+yarn test
+```
+
+## 📁 Project Structure
+
+```
+improof/
+├── packages/
+│   ├── foundry/           # Smart contracts
+│   │   ├── contracts/     # Solidity contracts
+│   │   ├── script/        # Deployment scripts
+│   │   └── test/          # Contract tests
+│   └── nextjs/            # Frontend application
+│       ├── app/           # Next.js app router
+│       ├── components/    # React components
+│       └── hooks/         # Custom React hooks
+├── GlobalForestWatchAPI_Response.json  # Sample data format
+└── README.md
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create a `.env.local` file in `packages/nextjs/`:
+
+```bash
+NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=your_wallet_connect_id
+NEXT_PUBLIC_ALCHEMY_API_KEY=your_alchemy_key
+```
+
+### Network Configuration
+
+Update `packages/nextjs/scaffold.config.ts` for network settings and `packages/foundry/foundry.toml` for contract deployment configuration.
+
+## 🌍 Real-World Impact Examples
+
+ImProof currently supports verification through:
+- **🌳 Reforestation Projects**: Global Forest Watch API for tree planting verification
+- **🏗 Infrastructure**: Satellite data for construction progress
+- **📚 Education**: Blockchain-verified completion certificates
+- **🏥 Healthcare**: Anonymized impact metrics from health organizations
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our contributing guidelines for more information.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [Scaffold-ETH 2](https://scaffoldeth.io)
+- Powered by [Chainlink Functions](https://docs.chain.link/chainlink-functions)
+- Inspired by the need for transparent, impact-driven charitable giving
+
+---
+
+**Ready to make an impact with proof?** Start by creating your first donation vault and connecting it to real-world verification data.
